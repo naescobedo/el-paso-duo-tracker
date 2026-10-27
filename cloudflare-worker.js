@@ -109,21 +109,34 @@ export default {
     const topic = env.NTFY_TOPIC || NTFY_TOPIC;
 
     if (url.pathname === '/test-notify') {
-      const sample = PRODUCTS[1]; // 256GB Night Sky
-      await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
-        method: 'POST',
-        headers: {
-          'Title': '📱 Cloudflare Worker Test Alert',
-          'Priority': 'urgent',
-          'Tags': 'cloud,bell',
-          'Click': 'https://www.apple.com/shop/buy-iphone/iphone-duo',
-          'Content-Type': 'text/plain; charset=utf-8'
-        },
-        body: 'Cloudflare Worker 24/7 tracker is working! You will get alerts even when your computer is off.'
-      });
-      return new Response(JSON.stringify({ success: true, topic }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      try {
+        const ntfyRes = await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+          method: 'POST',
+          headers: {
+            'Title': 'Cloudflare Worker Test Alert',
+            'Priority': 'urgent',
+            'Tags': 'zap,apple,iphone',
+            'Click': 'applestore://',
+            'Actions': 'view, Open Apple Store App, applestore://, clear=true',
+            'Content-Type': 'text/plain; charset=utf-8'
+          },
+          body: 'Cloudflare Worker 24/7 tracker is working! You will get alerts even when your computer is off.'
+        });
+        const ntfyText = await ntfyRes.text();
+        return new Response(JSON.stringify({
+          success: ntfyRes.ok,
+          ntfy_status: ntfyRes.status,
+          ntfy_response: ntfyText,
+          topic
+        }, null, 2), {
+          headers: { 'Content-Type': 'application/json' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ success: false, error: err.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
     }
 
     const checkResult = await checkStockAndNotify(topic, env);
