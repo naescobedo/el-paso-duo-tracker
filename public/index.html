@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#05060a" />
+  <title>El Paso Duo Radar — Apple Cielo Vista Mall</title>
+  <meta name="description" content="Live iPhone Duo pickup availability at Apple Store Cielo Vista Mall in El Paso, Texas. Monitored every 30 seconds with instant alerts." />
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ambient Cosmic Glows -->
+  <div class="ambient-glow glow-top" aria-hidden="true"></div>
+  <div class="ambient-glow glow-radar" aria-hidden="true"></div>
+
+  <!-- Audio Chime Element -->
+  <audio id="audio-chime" preload="auto">
+    <!-- Clean synth chime base64 data uri -->
+    <source src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVoGAACBhYqFbF1fdJivrJBhNjVgodDbqWE2HjSK1/C/iFcxHDeU3/TFlGE5Gz2S4vLMnG1BGDaQ3/TNn3JJFTuP3PHKnXlSGT2N2e/FmX5ZHz2H0+u+lm9dHzaEz+e4kmVOGjeBxt6piGBIGTKBwtaefls5GS+AwNCSbFA0GiuBwcaSZU0wGS19wMGMZEwqGCp7vruHYEYmFSN3urSDW0EcEx9ztqp7V0UeERxwsKNyVUAZDxhqrZxsTUAVDRpmnpRoST4RChdhkI1fRDwOCBZZiINTRzkLBxRSgX5NQjYIBxBOeHlCPjMGBQ5HcnM/Oi8EAg1Ebmk5NyoBAgtAZ2U0MyYAAAlAYWIuLh4AAAhBX14qKBcAAAU/WlknIxIAAAQ7V1QhHRAAAAI3U1EeFwcAAAEyTUsaEQIAAAMuSEUXDAEAAAEqREARBgEAAAEkPz0NBQEAAAIdPDkIAwEAAAEYODUGAAEAAAAUNDIFAQAAAAAQMC4DAQAAAAANLygBAgAAAAAJKSMBAQAAAAAEHiAEAAAAAAAAFRoAAAAAAAAAEBAAAAAAAAA=" type="audio/wav">
+  </audio>
+
+  <main class="container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <svg viewBox="-10 -10 20 20" class="brand-star" aria-hidden="true">
+          <path d="M0,-9 C1,-1.6 1.6,-1 9,0 C1.6,1 1,1.6 0,9 C-1,1.6 -1.6,1 -9,0 C-1.6,-1 -1,-1.6 0,-9Z" fill="var(--star)" />
+        </svg>
+        <span class="brand-title">Duo Tracker · El Paso</span>
+      </div>
+
+      <div class="status-badge" id="telemetry-badge">
+        <span class="live-dot" id="live-dot"></span>
+        <span id="connection-status">Connecting…</span>
+      </div>
+    </header>
+
+    <!-- Main Grid: Radar & Store Hero -->
+    <div class="hero-grid">
+      <!-- Left Column: Radar Visualizer & Controls -->
+      <section class="radar-panel">
+        <div class="eyebrow">Apple Cielo Vista Mall · Store #R492 · El Paso, TX</div>
+        <h1 class="hero-title" id="radar-headline">Scanning El Paso…</h1>
+        <p class="hero-sub" id="radar-description">
+          Tracking in-store pickup drops at 8401 Gateway Blvd W, updated every 30 seconds directly from Apple.
+        </p>
+
+        <!-- Metrics Ticker Bar -->
+        <dl class="metrics-bar">
+          <div class="metric-item">
+            <dt>STORE WATCHED</dt>
+            <dd>Cielo Vista (R492)</dd>
+          </div>
+          <div class="metric-item">
+            <dt>CHECK FREQUENCY</dt>
+            <dd id="metric-check-frequency">Every 30s</dd>
+          </div>
+          <div class="metric-item">
+            <dt>TYPICAL DROP DURATION</dt>
+            <dd id="metric-median-dur">~1m 45s</dd>
+          </div>
+        </dl>
+
+        <!-- El Paso Radar Canvas / Visualizer -->
+        <div class="radar-wrapper" id="radar-container">
+          <svg viewBox="0 0 700 480" class="radar-svg" id="radar-svg" role="img" aria-label="El Paso Radar View for Apple Cielo Vista Mall">
+            <defs>
+              <radialGradient id="radar-halo" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#ece8de" stop-opacity="0.85" />
+                <stop offset="25%" stop-color="#f3a83a" stop-opacity="0.3" />
+                <stop offset="100%" stop-color="#f3a83a" stop-opacity="0" />
+              </radialGradient>
+              <linearGradient id="sweep-gradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#ece8de" stop-opacity="0.18" />
+                <stop offset="100%" stop-color="#ece8de" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+
+            <!-- Coordinate Grid & Range Rings (Centered at Cielo Vista Mall) -->
+            <g class="radar-rings" stroke="var(--hair-strong)" stroke-width="1" fill="none" stroke-dasharray="3 5">
+              <circle cx="350" cy="240" r="60" />
+              <circle cx="350" cy="240" r="130" />
+              <circle cx="350" cy="240" r="200" />
+              
+              <!-- Crosshairs -->
+              <line x1="120" y1="240" x2="580" y2="240" stroke-dasharray="none" stroke-opacity="0.4" />
+              <line x1="350" y1="30" x2="350" y2="450" stroke-dasharray="none" stroke-opacity="0.4" />
+            </g>
+
+            <!-- Range Labels -->
+            <g class="radar-labels" font-family="JetBrains Mono" font-size="10" fill="var(--star-faint)" text-anchor="middle">
+              <text x="350" y="174">5 MI</text>
+              <text x="350" y="104">15 MI</text>
+              <text x="350" y="34">30 MI</text>
+            </g>
+
+            <!-- Regional Landmarks for Context -->
+            <g class="regional-markers" font-family="JetBrains Mono" font-size="9" fill="var(--star)" letter-spacing="2" opacity="0.25">
+              <text x="170" y="140">FRANKLIN MTNS</text>
+              <text x="230" y="270">DOWNTOWN EL PASO</text>
+              <text x="520" y="210">EL PASO AIRPORT</text>
+              <text x="350" y="390">RIO GRANDE</text>
+              <text x="510" y="340">CIUDAD JUÁREZ</text>
+            </g>
+
+            <!-- Radar Sweep Beam (Rotating Animation) -->
+            <g class="radar-sweep" id="radar-sweep-beam">
+              <path d="M 350 240 L 350 40 A 200 200 0 0 0 210 98 Z" fill="url(#sweep-gradient)" />
+              <line x1="350" y1="240" x2="350" y2="40" stroke="var(--star)" stroke-width="1.2" stroke-opacity="0.6" />
+            </g>
+
+            <!-- Center Target: Apple Store Cielo Vista Mall -->
+            <g class="store-target" id="store-marker-group" transform="translate(350, 240)">
+              <!-- Dynamic Pulse Ripple -->
+              <circle class="radar-pulse-ring" r="8" fill="none" stroke="var(--star)" stroke-width="1.5" />
+              <circle class="radar-pulse-ring ring-delay" r="8" fill="none" stroke="var(--ember)" stroke-width="1" />
+              
+              <!-- Core Star / Mall Pin -->
+              <circle r="4.5" fill="var(--star)" class="core-dot" id="core-dot" />
+              
+              <!-- Store Callout Label -->
+              <text x="14" y="4" class="store-label" font-family="JetBrains Mono" font-size="11" font-weight="600" fill="var(--star)">
+                APPLE CIELO VISTA MALL
+              </text>
+              <text x="14" y="18" font-family="JetBrains Mono" font-size="9" fill="var(--star-dim)">
+                31.7750° N, 106.3794° W · TX 79925
+              </text>
+            </g>
+          </svg>
+
+          <!-- Store Status Strip Below Radar -->
+          <div class="store-quick-info">
+            <div class="store-details">
+              <span class="store-name">Apple Cielo Vista Mall</span>
+              <span class="store-meta">8401 Gateway Blvd W · Lower Level near Dillard's</span>
+            </div>
+            <div class="store-actions">
+              <a href="https://maps.apple.com/?address=8401+Gateway+Blvd+W,El+Paso,TX,79925" target="_blank" rel="noopener" class="btn-link">Directions ↗</a>
+              <a href="https://www.apple.com/retail/cielovistamall/" target="_blank" rel="noopener" class="btn-link">Store Page ↗</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="radar-legend">
+          <span class="legend-item"><span class="dot dot-available"></span>Ready for Pickup</span>
+          <span class="legend-item"><span class="dot dot-recent"></span>Recent Drop (&lt; 3h)</span>
+          <span class="legend-item"><span class="dot dot-soldout"></span>Sold Out</span>
+          <span class="legend-item"><span class="dot dot-scanning"></span>Active Radar Sweep</span>
+        </div>
+      </section>
+
+      <!-- Right Column: Live Status & Fast Action Cards -->
+      <aside class="sidebar-panel">
+        <!-- Ready For Pickup Banner / Hero Status -->
+        <section class="card pickup-status-card" id="pickup-card">
+          <div class="card-header">
+            <p class="eyebrow">PICKUP STATUS</p>
+            <span class="badge" id="stock-badge">Sold Out</span>
+          </div>
+          <h2 class="card-title" id="stock-headline">Nothing on the shelves.</h2>
+          <p class="card-desc" id="stock-subtext">
+            All 8 models are currently out of stock for local pickup in El Paso. The radar is pinging Apple every 30 seconds.
+          </p>
+
+          <!-- Active Drops List (Hidden when 0 in stock) -->
+          <div id="active-drops-container" class="active-drops-container hidden">
+            <h4 class="active-drops-title">Available Right Now at Cielo Vista:</h4>
+            <div id="active-drops-list" class="active-drops-list"></div>
+          </div>
+        </section>
+
+        <!-- Instant Alerts & Notifications -->
+        <section class="card alert-settings-card">
+          <p class="eyebrow">AUDIO & PUSH RADAR</p>
+          <h3 class="card-subtitle">Get Pinged Instantly</h3>
+          <p class="card-desc">
+            Keep this tab open or enable browser notifications. As soon as a Cielo Vista drop goes live, your device will alert you with a chime.
+          </p>
+
+          <div class="alert-controls">
+            <button type="button" id="btn-toggle-sound" class="btn-action">
+              <span id="sound-icon">🔊</span> <span id="sound-label">Audio Alert: ON</span>
+            </button>
+            <button type="button" id="btn-toggle-push" class="btn-action">
+              <span id="push-icon">🔔</span> <span id="push-label">Enable Push Notifications</span>
+            </button>
+          </div>
+
+          <div class="alert-test-zone">
+            <button type="button" id="btn-test-chime" class="btn-outline">Test Sound Chime ♫</button>
+            <button type="button" id="btn-simulate-drop" class="btn-outline btn-simulate">
+              ⚡ Trigger Test Drop (Simulation)
+            </button>
+          </div>
+        </section>
+
+        <!-- Mobile Phone Push Notifications (Works When PC Is Off) -->
+        <section class="card mobile-card" id="mobile-card">
+          <div class="card-badge-row">
+            <p class="eyebrow">PHONE NOTIFICATIONS</p>
+            <span class="badge-pill">Works When PC Is Off</span>
+          </div>
+          <h3 class="card-subtitle">Get Alerts on Your Phone</h3>
+          <p class="card-desc">
+            Receive instant push notifications with loud audio on your iPhone or Android the millisecond a restock drops in El Paso.
+          </p>
+
+          <div class="ntfy-box">
+            <div class="ntfy-steps">
+              <div class="ntfy-step">
+                <span class="step-num">1</span>
+                <span>Install the free <strong>ntfy</strong> app from the iOS App Store or Google Play.</span>
+              </div>
+              <div class="ntfy-step">
+                <span class="step-num">2</span>
+                <span>Tap <strong>+</strong> in the app and subscribe to your topic:</span>
+              </div>
+            </div>
+
+            <div class="topic-bar">
+              <span class="topic-prefix">ntfy.sh/</span>
+              <input type="text" id="input-ntfy-topic" class="topic-input" value="elpaso-duo-cielovista" placeholder="your-topic-name" spellcheck="false" />
+              <button type="button" class="btn-save-topic" id="btn-save-topic">Save</button>
+            </div>
+          </div>
+
+          <div class="mobile-actions">
+            <button type="button" id="btn-test-phone" class="btn-action btn-phone-test">
+              <span>📱 Send Test Alert to Phone</span>
+            </button>
+            <div id="phone-test-status" class="test-status-msg hidden"></div>
+          </div>
+
+          <div class="cloud-helper">
+            <details class="cloud-accordion">
+              <summary class="cloud-summary">
+                <span>☁️ <strong>How to track 24/7 with PC off (Free Cloud Setup)</strong></span>
+                <span class="accordion-arrow">▾</span>
+              </summary>
+              <div class="cloud-body">
+                <p>Because your computer stops polling Apple when turned off, run this tracker in the cloud for free:</p>
+                <div class="cloud-option">
+                  <div class="cloud-option-title">Option A: Render.com (Recommended Free 24/7 Host)</div>
+                  <p>1. Push this folder to your GitHub repository.<br>
+                  2. Sign up on <a href="https://render.com" target="_blank" rel="noopener">render.com</a> &rarr; <em>New Web Service</em> &rarr; connect repository.<br>
+                  3. Deploy! Render keeps the tracker running 24/7 and pushes alerts to your phone via ntfy.</p>
+                </div>
+                <div class="cloud-option">
+                  <div class="cloud-option-title">Option B: Cloudflare Worker (100% Free Serverless Cron)</div>
+                  <p>Copy the included <code>cloudflare-worker.js</code> into a free Cloudflare Worker with a 1-minute cron schedule. Zero servers, runs forever.</p>
+                </div>
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <!-- Fast Checkout Method -->
+        <section class="card checkout-card">
+          <p class="eyebrow">LIGHTNING CHECKOUT</p>
+          <h3 class="card-subtitle">Buy In Seconds</h3>
+          <p class="card-desc">
+            Drops at Apple Stores usually last under 2 minutes. When a model lights up, tap <strong>Buy</strong> to immediately bypass regular product selection and open checkout.
+          </p>
+
+          <div class="checkout-mode-select">
+            <span class="mode-label">Drop Link Mode:</span>
+            <div class="mode-buttons">
+              <button type="button" class="btn-mode active" data-mode="app" id="mode-app">Apple Store App</button>
+              <button type="button" class="btn-mode" data-mode="safari" id="mode-safari">Direct Bag ⚡</button>
+            </div>
+          </div>
+          <p class="mode-note" id="mode-explanation">
+            Recommended: Opens the Apple Store app directly where you are already authenticated with Face ID / Apple Pay.
+          </p>
+        </section>
+      </aside>
+    </div>
+
+    <!-- Models Inventory Matrix -->
+    <section class="models-section">
+      <div class="section-header">
+        <div>
+          <p class="eyebrow">ALL CONFIGURATIONS</p>
+          <h2 class="section-title">iPhone Duo Models Monitored</h2>
+        </div>
+        <div class="filter-pills" id="storage-filters">
+          <button type="button" class="filter-pill active" data-filter="all">All Models</button>
+          <button type="button" class="filter-pill" data-filter="256GB">256GB</button>
+          <button type="button" class="filter-pill" data-filter="512GB">512GB</button>
+          <button type="button" class="filter-pill" data-filter="1TB">1TB</button>
+          <button type="button" class="filter-pill" data-filter="2TB">2TB</button>
+        </div>
+      </div>
+
+      <div class="models-grid" id="models-grid">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+    </section>
+
+    <!-- Restock History & Telemetry Analytics -->
+    <section class="history-section">
+      <div class="history-grid">
+        <!-- Left: Hourly Restock Distribution Chart -->
+        <div class="chart-col">
+          <p class="eyebrow">EL PASO RESTOCK PATTERNS</p>
+          <h2 class="section-title">When Drops Land</h2>
+          <p class="section-desc">
+            Restock drops typically happen when morning inventory shipments are scanned into the Cielo Vista Mall back-of-house system.
+          </p>
+
+          <div class="chart-container">
+            <div class="chart-header">
+              <span>FREQUENCY BY HOUR</span>
+              <span>MOUNTAIN TIME (EL PASO)</span>
+            </div>
+            <div class="bar-chart" id="hourly-bars" role="img" aria-label="Hourly drops distribution chart">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+            <div class="chart-ticks">
+              <span>12a</span>
+              <span>6a</span>
+              <span>12p</span>
+              <span>6p</span>
+              <span>11p</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Recent Drops Activity Log -->
+        <div class="log-col">
+          <div class="log-header">
+            <div>
+              <p class="eyebrow">DROP LOGS</p>
+              <h3 class="card-subtitle">Recent Restock Events</h3>
+            </div>
+            <span class="drop-count-badge" id="total-drops-badge">0 drops logged</span>
+          </div>
+
+          <div class="drop-logs-table-wrapper">
+            <table class="drop-logs-table">
+              <thead>
+                <tr>
+                  <th>TIME</th>
+                  <th>MODEL</th>
+                  <th>STORE</th>
+                  <th>DURATION</th>
+                </tr>
+              </thead>
+              <tbody id="drop-logs-body">
+                <!-- Rendered dynamically by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-left">
+        <p>Not affiliated with Apple Inc. Availability data is retrieved directly from Apple's public retail fulfillment system.</p>
+        <p>Always verify pickup time slots at checkout on <a href="https://apple.com" target="_blank" rel="noopener">apple.com</a>.</p>
+      </div>
+      <div class="footer-right font-mono">
+        <span>STORE ID: R492</span>
+        <span>LAT: 31.77508</span>
+        <span>LNG: -106.3794</span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

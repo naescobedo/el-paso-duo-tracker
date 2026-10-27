@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: el-paso-duo-tracker
+    env: node
+    plan: free
+    buildCommand: ""
+    startCommand: "npm start"
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: SWEEP_INTERVAL_MS
+        value: 30000
+      - key: NTFY_TOPIC
+        value: elpaso-duo-cielovista

@@ -1,0 +1,60 @@
+{
+  "events": [
+    {
+      "id": 8,
+      "store_id": "R492",
+      "part_number": "MK1F4LL/A",
+      "started_at": "2026-10-27T22:35:04.979Z",
+      "ended_at": null
+    },
+    {
+      "id": 7,
+      "store_id": "R492",
+      "part_number": "MK1F4LL/A",
+      "started_at": "2026-10-27T22:32:13.542Z",
+      "ended_at": null
+    },
+    {
+      "id": 6,
+      "store_id": "R492",
+      "part_number": "MK1F4LL/A",
+      "started_at": "2026-10-27T22:05:47.725Z",
+      "ended_at": "2026-10-27T22:06:28.156Z"
+    },
+    {
+      "id": 5,
+      "store_id": "R492",
+      "part_number": "MK1L4LL/A",
+      "started_at": "2026-10-27T22:03:46.237Z",
+      "ended_at": "2026-10-27T22:05:16.236Z"
+    },
+    {
+      "id": 1,
+      "store_id": "R492",
+      "part_number": "MK1F4LL/A",
+      "started_at": "2026-10-25T17:15:45.740Z",
+      "ended_at": "2026-10-25T17:17:39.740Z"
+    },
+    {
+      "id": 2,
+      "store_id": "R492",
+      "part_number": "MK1H4LL/A",
+      "started_at": "2026-10-26T10:03:45.740Z",
+      "ended_at": "2026-10-26T10:05:11.740Z"
+    },
+    {
+      "id": 3,
+      "store_id": "R492",
+      "part_number": "MK1E4LL/A",
+      "started_at": "2026-10-27T02:51:45.740Z",
+      "ended_at": "2026-10-27T02:54:07.740Z"
+    },
+    {
+      "id": 4,
+      "store_id": "R492",
+      "part_number": "MK1G4LL/A",
+      "started_at": "2026-10-27T17:33:45.740Z",
+      "ended_at": "2026-10-27T17:35:23.740Z"
+    }
+  ]
+}

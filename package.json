@@ -1,0 +1,19 @@
+{
+  "name": "el-paso-duo-tracker",
+  "version": "1.0.0",
+  "description": "Live Apple Store Cielo Vista Mall (El Paso, TX) inventory radar & drop tracker for iPhone Duo",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "apple",
+    "el-paso",
+    "cielo-vista",
+    "iphone-duo",
+    "inventory-tracker",
+    "stock-radar"
+  ],
+  "author": "",
+  "license": "MIT"
+}
