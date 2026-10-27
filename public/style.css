@@ -1220,3 +1220,57 @@ body {
   color: var(--ember);
 }
 
+/* Alert Storage Filter Pills */
+.alert-storage-filter-box {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--hair);
+}
+
+.filter-box-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--star-faint);
+  margin-bottom: 8px;
+}
+
+.storage-toggle-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill-toggle {
+  background: rgba(236, 232, 222, 0.05);
+  border: 1px solid var(--hair);
+  color: var(--star-dim);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pill-toggle:hover {
+  border-color: var(--hair-strong);
+  color: var(--star);
+}
+
+.pill-toggle.active {
+  background: rgba(243, 168, 58, 0.18);
+  border-color: var(--ember);
+  color: var(--ember-bright);
+  font-weight: 600;
+}
+
+.filter-tip {
+  font-size: 11px;
+  color: var(--star-dim);
+  margin-top: 8px;
+  line-height: 1.4;
+}
+

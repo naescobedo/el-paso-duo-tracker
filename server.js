@@ -42,16 +42,23 @@ const USER_AGENTS = [
 const DATA_FILE = path.join(__dirname, 'history.json');
 const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 
-// Read settings (ntfy, discord, telegram)
+// Read settings (ntfy, discord, telegram, storage filter)
 function loadSettings() {
+  const defaults = {
+    ntfy_topic: 'elpaso-duo-cielovista',
+    alert_storages: ['512GB'],
+    discord_webhook: '',
+    telegram_bot_token: '',
+    telegram_chat_id: ''
+  };
   try {
     if (fs.existsSync(SETTINGS_FILE)) {
-      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+      return { ...defaults, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) };
     }
   } catch (e) {
     console.warn('Error reading settings.json:', e.message);
   }
-  return { ntfy_topic: 'elpaso-duo-cielovista', discord_webhook: '', telegram_bot_token: '', telegram_chat_id: '' };
+  return defaults;
 }
 
 let settings = loadSettings();
@@ -324,14 +331,25 @@ async function runSweep() {
           events.unshift(newEvent);
           saveHistory();
 
-          // Dispatch notification to ntfy / Discord / Telegram
-          const buyUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-${p.storage.toLowerCase()}-${p.color.toLowerCase().replace(/\s+/g, '-')}-unlocked?skipul=1#${p.part}`;
-          sendNotification(
-            `⚡ IN STOCK: iPhone Duo ${p.storage} ${p.color}`,
-            `Apple Cielo Vista Mall (El Paso) has ${p.storage} ${p.color} ready for pickup now!`,
-            buyUrl,
-            p.part
-          );
+          // Storage Notification Filter: Only alert for models user wants (e.g. 512GB)
+          const currentSettings = loadSettings();
+          const targetStorages = Array.isArray(currentSettings.alert_storages) && currentSettings.alert_storages.length > 0
+            ? currentSettings.alert_storages
+            : ['512GB'];
+
+          const matchesStorage = targetStorages.includes('all') || targetStorages.includes(p.storage);
+
+          if (!matchesStorage) {
+            console.log(`[ALERT FILTERED] Skipping phone alert for ${p.storage} ${p.color} (filter set to: ${targetStorages.join(', ')})`);
+          } else {
+            const buyUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-${p.storage.toLowerCase()}-${p.color.toLowerCase().replace(/\s+/g, '-')}-unlocked?skipul=1#${p.part}`;
+            sendNotification(
+              `⚡ IN STOCK: iPhone Duo ${p.storage} ${p.color}`,
+              `Apple Cielo Vista Mall (El Paso) has ${p.storage} ${p.color} ready for pickup now!\n\nTap to open in Apple Store app and buy immediately with Apple Pay!`,
+              buyUrl,
+              p.part
+            );
+          }
         } else if (!isAvailable && wasAvailable) {
           console.log(`[DROP ENDED] ${p.storage} ${p.color} (${p.part}) sold out at Cielo Vista Mall.`);
           const activeEvent = events.find(e => e.part_number === p.part && !e.ended_at);
@@ -458,7 +476,10 @@ const server = http.createServer((req, res) => {
       stock: stockList,
       events: events.slice(0, 30),
       is_simulated: !!simulatedStock,
-      settings: { ntfy_topic: settings.ntfy_topic },
+      settings: {
+        ntfy_topic: settings.ntfy_topic,
+        alert_storages: settings.alert_storages || ['512GB']
+      },
       status: status
     });
 
@@ -482,7 +503,7 @@ const server = http.createServer((req, res) => {
     let rawBody = '';
     req.on('data', chunk => rawBody += chunk);
     req.on('end', () => {
-      let chosenPart = 'MK1F4LL/A';
+      let chosenPart = 'MK1H4LL/A'; // 512GB Night Sky
       try {
         const bodyObj = JSON.parse(rawBody || '{}');
         if (bodyObj.part) chosenPart = bodyObj.part;
@@ -538,14 +559,16 @@ const server = http.createServer((req, res) => {
   }
 
   if ((pathname === '/api/test-ntfy' || pathname === '/api/test-phone-notification') && req.method === 'POST') {
-    const clickUrl = 'https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-256gb-night-sky-unlocked?skipul=1#MK1F4LL/A';
+    const chosenPart = 'MK1H4LL/A'; // 512GB Night Sky
+    const clickUrl = 'https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-512gb-night-sky-unlocked?skipul=1#MK1H4LL/A';
     sendNotification(
       'Test Alert: Duo Tracker · El Paso',
-      'Test restock alert successfully received on your device! Tapping this notification will open the Apple checkout bag.',
-      clickUrl
+      '512GB Alert Filter Active! You will receive instant phone alerts whenever a 512GB iPhone Duo (Night Sky or Star White) drops at Apple Cielo Vista Mall.',
+      clickUrl,
+      chosenPart
     );
     res.writeHead(200, { 'Content-Type': 'application/json' });
-    return res.end(JSON.stringify({ success: true, topic: settings.ntfy_topic }));
+    return res.end(JSON.stringify({ success: true, topic: settings.ntfy_topic, filter: settings.alert_storages }));
   }
 
   if (pathname === '/go') {

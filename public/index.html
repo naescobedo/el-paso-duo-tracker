@@ -229,6 +229,19 @@
               <input type="text" id="input-ntfy-topic" class="topic-input" value="elpaso-duo-cielovista" placeholder="your-topic-name" spellcheck="false" />
               <button type="button" class="btn-save-topic" id="btn-save-topic">Save</button>
             </div>
+
+            <!-- Model Storage Alert Filter -->
+            <div class="alert-storage-filter-box">
+              <span class="filter-box-label">📱 Alert me for:</span>
+              <div class="storage-toggle-pills" id="alert-storage-pills">
+                <button type="button" class="pill-toggle" data-storage="all">All</button>
+                <button type="button" class="pill-toggle" data-storage="256GB">256GB</button>
+                <button type="button" class="pill-toggle active" data-storage="512GB">512GB (Active)</button>
+                <button type="button" class="pill-toggle" data-storage="1TB">1TB</button>
+                <button type="button" class="pill-toggle" data-storage="2TB">2TB</button>
+              </div>
+              <p class="filter-tip" id="filter-tip-text">Filtering: Only 512GB Star White & Night Sky will ping your phone.</p>
+            </div>
           </div>
 
           <div class="mobile-actions">

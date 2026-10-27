@@ -284,6 +284,23 @@
           topicInput.value = data.settings.ntfy_topic;
         }
       }
+      if (data.settings?.alert_storages) {
+        const activeStorages = data.settings.alert_storages;
+        document.querySelectorAll('#alert-storage-pills .pill-toggle').forEach(pill => {
+          const s = pill.dataset.storage;
+          const isActive = (s === 'all' && activeStorages.includes('all')) || activeStorages.includes(s);
+          pill.classList.toggle('active', isActive);
+          if (s !== 'all') {
+            pill.textContent = isActive ? `${s} (Active)` : s;
+          }
+        });
+        const tipEl = document.getElementById('filter-tip-text');
+        if (tipEl) {
+          tipEl.textContent = activeStorages.includes('all')
+            ? 'Filtering: All models will alert your phone.'
+            : `Filtering: Only ${activeStorages.join(', ')} Star White & Night Sky will ping your phone.`;
+        }
+      }
 
       // Detect restock drop triggers for sounds & notifications
       if (state.initialized) {
@@ -487,6 +504,38 @@
         }
       });
     }
+
+    // Storage Alert Filter Pills
+    document.querySelectorAll('#alert-storage-pills .pill-toggle').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const chosen = btn.dataset.storage;
+        const targetList = chosen === 'all' ? ['all'] : [chosen];
+
+        document.querySelectorAll('#alert-storage-pills .pill-toggle').forEach(p => {
+          p.classList.toggle('active', p === btn);
+          if (p.dataset.storage !== 'all') {
+            p.textContent = p === btn ? `${p.dataset.storage} (Active)` : p.dataset.storage;
+          }
+        });
+
+        const tipEl = document.getElementById('filter-tip-text');
+        if (tipEl) {
+          tipEl.textContent = chosen === 'all'
+            ? 'Filtering: All models will alert your phone.'
+            : `Filtering: Only ${chosen} Star White & Night Sky will ping your phone.`;
+        }
+
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ alert_storages: targetList })
+          });
+        } catch (e) {
+          console.warn('Could not save storage filter:', e);
+        }
+      });
+    });
   }
 
   // Initialize
