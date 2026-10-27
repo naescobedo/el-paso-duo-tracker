@@ -48,7 +48,7 @@ async function checkStockAndNotify(topic = NTFY_TOPIC) {
     const store = data.body?.stores?.[0];
     const partsMap = store?.partsAvailability || {};
 
-    const allowedStorages = (env.ALERT_STORAGES ? env.ALERT_STORAGES.split(',') : ['512GB']).map(s => s.trim());
+    const allowedStorages = (env.ALERT_STORAGES ? env.ALERT_STORAGES.split(',') : ['256GB']).map(s => s.trim());
     const available = [];
     for (const p of PRODUCTS) {
       const info = partsMap[p.part] || {};

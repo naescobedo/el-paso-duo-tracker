@@ -1,7 +1,7 @@
 {
   "ntfy_topic": "elpaso-duo-cielovista",
   "alert_storages": [
-    "512GB"
+    "256GB"
   ],
   "discord_webhook": "",
   "telegram_bot_token": "",

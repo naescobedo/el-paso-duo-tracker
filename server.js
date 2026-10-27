@@ -46,7 +46,7 @@ const SETTINGS_FILE = path.join(__dirname, 'settings.json');
 function loadSettings() {
   const defaults = {
     ntfy_topic: 'elpaso-duo-cielovista',
-    alert_storages: ['512GB'],
+    alert_storages: ['256GB'],
     discord_webhook: '',
     telegram_bot_token: '',
     telegram_chat_id: ''
@@ -335,7 +335,7 @@ async function runSweep() {
           const currentSettings = loadSettings();
           const targetStorages = Array.isArray(currentSettings.alert_storages) && currentSettings.alert_storages.length > 0
             ? currentSettings.alert_storages
-            : ['512GB'];
+            : ['256GB'];
 
           const matchesStorage = targetStorages.includes('all') || targetStorages.includes(p.storage);
 
@@ -503,7 +503,7 @@ const server = http.createServer((req, res) => {
     let rawBody = '';
     req.on('data', chunk => rawBody += chunk);
     req.on('end', () => {
-      let chosenPart = 'MK1H4LL/A'; // 512GB Night Sky
+      let chosenPart = 'MK1F4LL/A'; // 256GB Night Sky default
       try {
         const bodyObj = JSON.parse(rawBody || '{}');
         if (bodyObj.part) chosenPart = bodyObj.part;
@@ -559,11 +559,11 @@ const server = http.createServer((req, res) => {
   }
 
   if ((pathname === '/api/test-ntfy' || pathname === '/api/test-phone-notification') && req.method === 'POST') {
-    const chosenPart = 'MK1H4LL/A'; // 512GB Night Sky
-    const clickUrl = 'https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-512gb-night-sky-unlocked?skipul=1#MK1H4LL/A';
+    const chosenPart = 'MK1F4LL/A'; // 256GB Night Sky
+    const clickUrl = 'https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-256gb-night-sky-unlocked?skipul=1#MK1F4LL/A';
     sendNotification(
       'Test Alert: Duo Tracker · El Paso',
-      '512GB Alert Filter Active! You will receive instant phone alerts whenever a 512GB iPhone Duo (Night Sky or Star White) drops at Apple Cielo Vista Mall.',
+      '256GB Alert Filter Active! You will receive instant phone alerts whenever a 256GB iPhone Duo (Night Sky or Star White) drops at Apple Cielo Vista Mall.',
       clickUrl,
       chosenPart
     );
