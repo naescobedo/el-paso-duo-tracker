@@ -62,7 +62,7 @@ async function checkStockAndNotify(topic = NTFY_TOPIC) {
         const storageSlug = p.storage.toLowerCase();
         const colorSlug = p.color.toLowerCase().replace(/\s+/g, '-');
         const appUniversalUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${p.part}`;
-        const actionsHeader = `view, Apple Store App, ${appUniversalUrl}, clear=true; view, Launch App, applestore://, clear=true; view, Safari Bag, ${buyUrl}, clear=true`;
+        const actionsHeader = `view, Open Apple Store App, applestore://, clear=true; view, Open Bag, https://www.apple.com/shop/bag, clear=true; view, Product Page, ${appUniversalUrl}, clear=true`;
 
         await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
           method: 'POST',
@@ -70,7 +70,7 @@ async function checkStockAndNotify(topic = NTFY_TOPIC) {
             'Title': `RESTOCK: ${p.storage} ${p.color} at Cielo Vista Mall!`,
             'Priority': 'urgent',
             'Tags': 'iphone,rotating_light,shopping_bags',
-            'Click': appUniversalUrl,
+            'Click': 'applestore://',
             'Actions': actionsHeader,
             'Content-Type': 'text/plain; charset=utf-8'
           },

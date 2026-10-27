@@ -69,7 +69,7 @@ function sendNotification(title, message, clickUrl, partNumber) {
     try {
       const topicUrl = `https://ntfy.sh/${encodeURIComponent(settings.ntfy_topic)}`;
       const cleanTitle = (title || 'Stock Drop').replace(/[^\x00-\x7F]/g, '').trim();
-      const actionsHeader = `view, Apple Store App, ${appUniversalUrl}, clear=true; view, Launch App, applestore://, clear=true; view, Safari Bag, ${directBagUrl}, clear=true`;
+      const actionsHeader = `view, Open Apple Store App, applestore://, clear=true; view, Open Bag, https://www.apple.com/shop/bag, clear=true; view, Product Page, ${appUniversalUrl}, clear=true`;
 
       const req = https.request(topicUrl, {
         method: 'POST',
@@ -77,7 +77,7 @@ function sendNotification(title, message, clickUrl, partNumber) {
           'Title': cleanTitle,
           'Priority': 'urgent',
           'Tags': 'zap,apple,iphone',
-          'Click': appUniversalUrl,
+          'Click': 'applestore://',
           'Actions': actionsHeader
         }
       }, res => {
