@@ -61,18 +61,20 @@ async function checkStockAndNotify(topic = NTFY_TOPIC) {
       for (const p of available) {
         const storageSlug = p.storage.toLowerCase();
         const colorSlug = p.color.toLowerCase().replace(/\s+/g, '-');
-        const buyUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo/7.6-inch-display-${storageSlug}-${colorSlug}-unlocked?skipul=1#${p.part}`;
+        const appUniversalUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${p.part}`;
+        const actionsHeader = `view, Apple Store App, ${appUniversalUrl}, clear=true; view, Launch App, applestore://, clear=true; view, Safari Bag, ${buyUrl}, clear=true`;
 
         await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
           method: 'POST',
           headers: {
-            'Title': `🚨 RESTOCK: ${p.storage} ${p.color} at Cielo Vista Mall!`,
+            'Title': `RESTOCK: ${p.storage} ${p.color} at Cielo Vista Mall!`,
             'Priority': 'urgent',
             'Tags': 'iphone,rotating_light,shopping_bags',
-            'Click': buyUrl,
+            'Click': appUniversalUrl,
+            'Actions': actionsHeader,
             'Content-Type': 'text/plain; charset=utf-8'
           },
-          body: `DROP DETECTED IN EL PASO!\nModel: iPhone Duo ${p.storage} · ${p.color} (${p.price})\nStore: Apple Cielo Vista Mall (Store #R492)\n\nTap this alert immediately to checkout!`
+          body: `DROP DETECTED IN EL PASO!\n\nModel: iPhone Duo ${p.storage} · ${p.color} (${p.price})\nStore: Apple Cielo Vista Mall (Store #R492)\n\nTap below to open in Apple Store app and checkout immediately!`
         });
       }
       return { status: 'drop_detected', count: available.length, models: available };
@@ -85,10 +87,17 @@ async function checkStockAndNotify(topic = NTFY_TOPIC) {
 }
 
 export default {
-  // Cloudflare Scheduled Event (Runs on Cron Trigger every minute)
+  // Cloudflare Scheduled Event (Runs every minute, with 30s dual-check)
   async scheduled(event, env, ctx) {
     const topic = env.NTFY_TOPIC || NTFY_TOPIC;
-    ctx.waitUntil(checkStockAndNotify(topic));
+    ctx.waitUntil((async () => {
+      // Check 1: 0s
+      await checkStockAndNotify(topic);
+      // Wait 30 seconds
+      await new Promise(r => setTimeout(r, 30000));
+      // Check 2: 30s
+      await checkStockAndNotify(topic);
+    })());
   },
 
   // HTTP Request Handler (Visit your worker URL in browser to test or view status)

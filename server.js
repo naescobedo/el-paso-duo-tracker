@@ -57,22 +57,28 @@ function loadSettings() {
 let settings = loadSettings();
 
 // Notification Dispatcher
-function sendNotification(title, message, clickUrl) {
+function sendNotification(title, message, clickUrl, partNumber) {
   settings = loadSettings();
 
-  // 1. ntfy.sh
+  const part = partNumber || 'MK1F4LL/A';
+  const appUniversalUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${part}`;
+  const directBagUrl = clickUrl || appUniversalUrl;
+
+  // 1. ntfy.sh with Apple Store App action buttons
   if (settings.ntfy_topic) {
     try {
       const topicUrl = `https://ntfy.sh/${encodeURIComponent(settings.ntfy_topic)}`;
-      // Sanitize header to pure ASCII
       const cleanTitle = (title || 'Stock Drop').replace(/[^\x00-\x7F]/g, '').trim();
+      const actionsHeader = `view, Apple Store App, ${appUniversalUrl}, clear=true; view, Launch App, applestore://, clear=true; view, Safari Bag, ${directBagUrl}, clear=true`;
+
       const req = https.request(topicUrl, {
         method: 'POST',
         headers: {
           'Title': cleanTitle,
           'Priority': 'urgent',
           'Tags': 'zap,apple,iphone',
-          'Click': clickUrl || 'https://www.apple.com/shop/buy-iphone/iphone-duo'
+          'Click': appUniversalUrl,
+          'Actions': actionsHeader
         }
       }, res => {
         console.log(`[NTFY] Alert sent to ntfy.sh/${settings.ntfy_topic} (HTTP ${res.statusCode})`);
@@ -323,7 +329,8 @@ async function runSweep() {
           sendNotification(
             `⚡ IN STOCK: iPhone Duo ${p.storage} ${p.color}`,
             `Apple Cielo Vista Mall (El Paso) has ${p.storage} ${p.color} ready for pickup now!`,
-            buyUrl
+            buyUrl,
+            p.part
           );
         } else if (!isAvailable && wasAvailable) {
           console.log(`[DROP ENDED] ${p.storage} ${p.color} (${p.part}) sold out at Cielo Vista Mall.`);
