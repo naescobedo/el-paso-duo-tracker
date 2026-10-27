@@ -27,7 +27,7 @@ const PRODUCTS = [
   { part: 'MK1R4LL/A', storage: '2TB', color: 'Night Sky', price: '$2,699' }
 ];
 
-async function checkStockAndNotify(topic = NTFY_TOPIC) {
+async function checkStockAndNotify(topic = NTFY_TOPIC, env = {}) {
   const partsQuery = PRODUCTS.map((p, i) => `parts.${i}=${encodeURIComponent(p.part)}`).join('&');
   const url = `https://www.apple.com/shop/retail/pickup-message?${partsQuery}&store=${STORE_ID}`;
 
@@ -48,7 +48,7 @@ async function checkStockAndNotify(topic = NTFY_TOPIC) {
     const store = data.body?.stores?.[0];
     const partsMap = store?.partsAvailability || {};
 
-    const allowedStorages = (env.ALERT_STORAGES ? env.ALERT_STORAGES.split(',') : ['256GB']).map(s => s.trim());
+    const allowedStorages = (env && env.ALERT_STORAGES ? env.ALERT_STORAGES.split(',') : ['256GB']).map(s => s.trim());
     const available = [];
     for (const p of PRODUCTS) {
       const info = partsMap[p.part] || {};
@@ -95,11 +95,11 @@ export default {
     const topic = env.NTFY_TOPIC || NTFY_TOPIC;
     ctx.waitUntil((async () => {
       // Check 1: 0s
-      await checkStockAndNotify(topic);
+      await checkStockAndNotify(topic, env);
       // Wait 30 seconds
       await new Promise(r => setTimeout(r, 30000));
       // Check 2: 30s
-      await checkStockAndNotify(topic);
+      await checkStockAndNotify(topic, env);
     })());
   },
 
@@ -126,7 +126,7 @@ export default {
       });
     }
 
-    const checkResult = await checkStockAndNotify(topic);
+    const checkResult = await checkStockAndNotify(topic, env);
     return new Response(JSON.stringify({
       worker: 'El Paso Duo Cloudflare Worker',
       cron_interval: 'Every 1 minute (24/7 cloud)',
