@@ -3,7 +3,7 @@
   "alert_storages": [
     "256GB"
   ],
-  "discord_webhook": "",
+  "discord_webhook": "https://discord.com/api/webhooks/1564790820849057974/lZDAv_F_o8uCzPNCtrGxH0iRnKhVDff1I-JGe0srW_X1LGZLp40jZHMUm48stukdHwM8",
   "telegram_bot_token": "",
   "telegram_chat_id": ""
 }

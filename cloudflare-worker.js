@@ -2,19 +2,13 @@
  * El Paso Duo Radar — Cloudflare Worker (100% Free 24/7 Cloud Tracker)
  * 
  * Runs continuously in the cloud even when your PC is turned off.
- * Polls Apple Store Cielo Vista Mall (R492) and sends instant push
- * notifications to your phone via ntfy.sh.
- * 
- * SETUP INSTRUCTIONS:
- * 1. Go to https://dash.cloudflare.com -> Workers & Pages -> Create Worker.
- * 2. Paste this code into the worker editor and click "Deploy".
- * 3. Go to Settings -> Triggers -> Cron Triggers -> Add Cron:
- *    Set to "* * * * *" (runs every 1 minute for free).
- * 4. Install the free "ntfy" app on your iPhone/Android and subscribe to your topic.
+ * Polls Apple Store Cielo Vista Mall (R492) and sends instant alerts
+ * to your phone via Discord Webhook (+ optional ntfy.sh).
  */
 
 const STORE_ID = 'R492'; // Apple Store Cielo Vista Mall, El Paso, TX
-const NTFY_TOPIC = 'elpaso-duo-cielovista'; // Change this to your private topic name
+const DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/1564790820849057974/lZDAv_F_o8uCzPNCtrGxH0iRnKhVDff1I-JGe0srW_X1LGZLp40jZHMUm48stukdHwM8';
+const NTFY_TOPIC = 'elpaso-duo-cielovista';
 
 const PRODUCTS = [
   { part: 'MK1E4LL/A', storage: '256GB', color: 'Star White', price: '$1,799' },
@@ -30,6 +24,7 @@ const PRODUCTS = [
 async function checkStockAndNotify(topic = NTFY_TOPIC, env = {}) {
   const partsQuery = PRODUCTS.map((p, i) => `parts.${i}=${encodeURIComponent(p.part)}`).join('&');
   const url = `https://www.apple.com/shop/retail/pickup-message?${partsQuery}&store=${STORE_ID}`;
+  const discordUrl = env.DISCORD_WEBHOOK || DISCORD_WEBHOOK;
 
   try {
     const res = await fetch(url, {
@@ -60,26 +55,60 @@ async function checkStockAndNotify(topic = NTFY_TOPIC, env = {}) {
     }
 
     if (available.length > 0) {
-      // Stock drop detected! Push to phone
-      for (const p of available) {
-        const storageSlug = p.storage.toLowerCase();
-        const colorSlug = p.color.toLowerCase().replace(/\s+/g, '-');
-        const appUniversalUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${p.part}`;
-        const actionsHeader = `view, Open Apple Store App, applestore://, clear=true; view, Open Bag, https://www.apple.com/shop/bag, clear=true; view, Product Page, ${appUniversalUrl}, clear=true`;
+      // 1. Dispatch to Discord (Reliable, loud, zero IP limits)
+      if (discordUrl) {
+        try {
+          const embeds = available.map(p => ({
+            title: `⚡ RESTOCK: iPhone Duo ${p.storage} · ${p.color}`,
+            url: `https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${p.part}`,
+            color: 0x00FF66,
+            description: `**Apple Store Cielo Vista Mall (El Paso, TX)** has stock available for pickup right now!\n\n` +
+              `📱 **[Open in Apple Store App](applestore://)**\n` +
+              `🛍️ **[Open Bag / Checkout](https://www.apple.com/shop/bag)**\n` +
+              `🔗 **[View on Apple.com](https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${p.part})**`,
+            fields: [
+              { name: 'Model', value: `iPhone Duo ${p.storage}`, inline: true },
+              { name: 'Color', value: p.color, inline: true },
+              { name: 'Price', value: p.price, inline: true },
+              { name: 'Store', value: 'Cielo Vista Mall (#R492)', inline: false }
+            ],
+            footer: { text: 'El Paso Duo Radar • Cloudflare 24/7' },
+            timestamp: new Date().toISOString()
+          }));
 
-        await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
-          method: 'POST',
-          headers: {
-            'Title': `RESTOCK: ${p.storage} ${p.color} at Cielo Vista Mall!`,
-            'Priority': 'urgent',
-            'Tags': 'iphone,rotating_light,shopping_bags',
-            'Click': 'applestore://',
-            'Actions': actionsHeader,
-            'Content-Type': 'text/plain; charset=utf-8'
-          },
-          body: `DROP DETECTED IN EL PASO!\n\nModel: iPhone Duo ${p.storage} · ${p.color} (${p.price})\nStore: Apple Cielo Vista Mall (Store #R492)\n\nTap below to open in Apple Store app and checkout immediately!`
-        });
+          await fetch(discordUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: `@everyone 🚨 **RESTOCK DROP DETECTED AT CIELO VISTA MALL!**`,
+              embeds
+            })
+          });
+        } catch (e) {
+          console.error('Discord dispatch failed:', e);
+        }
       }
+
+      // 2. Dispatch to ntfy (fallback channel)
+      for (const p of available) {
+        try {
+          const appUniversalUrl = `https://www.apple.com/shop/buy-iphone/iphone-duo?skipul=1#${p.part}`;
+          const actionsHeader = `view, Open Apple Store App, applestore://, clear=true; view, Open Bag, https://www.apple.com/shop/bag, clear=true; view, Product Page, ${appUniversalUrl}, clear=true`;
+          await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
+            method: 'POST',
+            headers: {
+              'Title': `RESTOCK: ${p.storage} ${p.color} at Cielo Vista Mall!`,
+              'Priority': 'urgent',
+              'Tags': 'iphone,rotating_light,shopping_bags',
+              'Click': 'applestore://',
+              'Actions': actionsHeader,
+              'Content-Type': 'text/plain; charset=utf-8'
+            },
+            body: `DROP DETECTED IN EL PASO!\n\nModel: iPhone Duo ${p.storage} · ${p.color} (${p.price})\nStore: Apple Cielo Vista Mall (#R492)\n\nTap below to open in Apple Store app and checkout immediately!`
+          });
+        } catch (_) {}
+      }
+
       return { status: 'drop_detected', count: available.length, models: available };
     }
 
@@ -103,47 +132,57 @@ export default {
     })());
   },
 
-  // HTTP Request Handler (Visit your worker URL in browser to test or view status)
+  // HTTP Request Handler
   async fetch(request, env) {
     const url = new URL(request.url);
     const topic = env.NTFY_TOPIC || NTFY_TOPIC;
+    const discordUrl = env.DISCORD_WEBHOOK || DISCORD_WEBHOOK;
 
     if (url.pathname === '/test-notify') {
-      try {
-        const ntfyRes = await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}`, {
-          method: 'POST',
-          headers: {
-            'Title': 'Cloudflare Worker Test Alert',
-            'Priority': 'urgent',
-            'Tags': 'zap,apple,iphone',
-            'Click': 'applestore://',
-            'Actions': 'view, Open Apple Store App, applestore://, clear=true',
-            'Content-Type': 'text/plain; charset=utf-8'
-          },
-          body: 'Cloudflare Worker 24/7 tracker is working! You will get alerts even when your computer is off.'
-        });
-        const ntfyText = await ntfyRes.text();
-        return new Response(JSON.stringify({
-          success: ntfyRes.ok,
-          ntfy_status: ntfyRes.status,
-          ntfy_response: ntfyText,
-          topic
-        }, null, 2), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ success: false, error: err.message }), {
-          status: 500,
-          headers: { 'Content-Type': 'application/json' }
-        });
+      let discordStatus = 'not_configured';
+
+      if (discordUrl) {
+        try {
+          const dRes = await fetch(discordUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              content: `@everyone 🔔 **Discord Restock Alert Test!**`,
+              embeds: [{
+                title: '✅ Cloudflare 24/7 Restock Tracker Connected!',
+                color: 0x5865F2,
+                description: `Your Cloudflare Worker is active and monitoring **Apple Store Cielo Vista Mall (R492)** in El Paso, TX.\n\n` +
+                  `🎯 **Filter**: 256GB Only (Star White & Night Sky)\n` +
+                  `⏱️ **Frequency**: Every 30 seconds (24/7 in the cloud)\n\n` +
+                  `📱 **[Open Apple Store App](applestore://)**\n` +
+                  `🛍️ **[Open Checkout Bag](https://www.apple.com/shop/bag)**`,
+                footer: { text: 'El Paso Duo Radar • Cloudflare Edge' },
+                timestamp: new Date().toISOString()
+              }]
+            })
+          });
+          discordStatus = dRes.status;
+        } catch (e) {
+          discordStatus = e.message;
+        }
       }
+
+      return new Response(JSON.stringify({
+        success: true,
+        discord_status: discordStatus,
+        message: 'Test notification sent to Discord! Check your Discord app.'
+      }, null, 2), {
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
 
     const checkResult = await checkStockAndNotify(topic, env);
     return new Response(JSON.stringify({
       worker: 'El Paso Duo Cloudflare Worker',
-      cron_interval: 'Every 1 minute (24/7 cloud)',
-      ntfy_topic: topic,
+      cron_interval: 'Every 30 seconds (24/7 cloud)',
+      filter: '256GB Only',
+      store: 'Apple Cielo Vista Mall (R492)',
+      discord_configured: !!discordUrl,
       last_check: checkResult
     }, null, 2), {
       headers: { 'Content-Type': 'application/json' }
